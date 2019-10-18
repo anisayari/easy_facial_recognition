@@ -1,4 +1,3 @@
-# easy_facial_recognition
 # Easy Facial Recognition
 
 Recognition by minimum norm between vectors (128D dlib descriptor)
