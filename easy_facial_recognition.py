@@ -39,14 +39,15 @@ def encode_face(image):
         shape = pose_predictor_68_point(image, face_location)
         face_encodings_list.append(np.array(face_encoder.compute_face_descriptor(image, shape, num_jitters=1)))
         # GET LANDMARKS
-        shape = face_utils.shape_to_np(shape)
-        landmarks_list.append(shape)
+        landmarks = face_utils.shape_to_np(shape)
+        landmarks_list.append(landmarks)
     face_locations = transform(image, face_locations)
     return face_encodings_list, face_locations, landmarks_list
 
 
 def easy_face_reco(frame, known_face_encodings, known_face_names):
     rgb_small_frame = frame[:, :, ::-1]
+    rgb_small_frame = rgb_small_frame.astype(np.uint8).copy()
     # ENCODING FACE
     face_encodings_list, face_locations_list, landmarks_list = encode_face(rgb_small_frame)
     face_names = []
@@ -94,12 +95,16 @@ if __name__ == '__main__':
 
     known_face_encodings = []
     for file_ in files:
-        image = PIL.Image.open(file_)
-        image = np.array(image)
-        face_encoded = encode_face(image)[0][0]
+        print(f"[CHARGING]: {file_}")
+        image = PIL.Image.open(file_).convert("RGB")
+        image = np.array(image, dtype=np.uint8).copy()
+        encodings = encode_face(image)[0]
+        if len(encodings) == 0:
+            print(f"[WARNING]: No face detected in {file_}, skipping")
+            continue
+        face_encoded = encodings[0]
         known_face_encodings.append(face_encoded)
 
-    print('[INFO] Faces well imported')
     print('[INFO] Starting Webcam...')
     video_capture = cv2.VideoCapture(0)
     print('[INFO] Webcam well started')
